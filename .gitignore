@@ -1,0 +1,4 @@
+.env
+openai/*
+__pycache__/
+gepeto.db
