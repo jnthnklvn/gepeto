@@ -1,5 +1,5 @@
 import openai
-from database import Database
+from src.database import Database
 from typing import List, Dict
 
 class OpenAIAPI:
@@ -8,7 +8,6 @@ class OpenAIAPI:
         openai.api_key = api_key
 
     def _insert_initial_data(self, user_sid: str, user_msg: str) -> List[Dict[str, str]]:
-            self._database.insert_user(user_sid)
             self._database.insert_message(user_sid, "user", user_msg)
             messages = self._database.get_messages_by_user_sid(user_sid)
             messages.insert(0, {"role": "system", "content": "Você é um amigo no whatsapp"})

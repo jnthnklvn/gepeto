@@ -1,4 +1,6 @@
 .env
-openai/*
+venv/*
 __pycache__/
 gepeto.db
+.vercel
+message_gepeto.json

@@ -1,7 +1,7 @@
 import time
 from twilio.twiml.messaging_response import MessagingResponse
 from flask import  request
-from open_ai_api import OpenAIAPI
+from src.open_ai_api import OpenAIAPI
 import logging
 
 
@@ -24,5 +24,4 @@ class TwilioBot:
 
             return str(response)
         except Exception as exc:
-            logging.info(f"{user_sid}: {user_msg}")
             logging.error(f"The bot has failed with: {exc}")
