@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+import configparser
 from flask import Flask
 from src.database import Database
 from src.twilio_bot import TwilioBot
@@ -22,16 +22,17 @@ dictConfig({
     }
 })
 app = Flask(__name__)
-load_dotenv()
+cfg = configparser.ConfigParser()
+cfg.read(".env")
 
-api_key = os.environ.get("CHAT_GPT_API_KEY")
+api_key = cfg.get("CHAT_GPT", "API_KEY")
 open_ai_api = OpenAIAPI(Database("message_gepeto.json"), api_key)
 bot = TwilioBot(open_ai_api)
 app.logger.info("Starting server...")
 
 @app.route("/", methods=["POST"])
 def start_bot():
-    bot.handle_request()
+    return bot.handle_request()
 
 @app.route("/test", methods=["GET"])
 def test():

@@ -6,7 +6,5 @@ README.md
 __pycache__
 .pytest_cache
 venv
-.env-template
-.env
 .gitignore
 setup.ps1

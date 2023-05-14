@@ -15,7 +15,6 @@ class TwilioBot:
             msg_sid = request.values.get('MessageSid', '')
             user_sid = request.values.get('AccountSid', msg_sid)
 
-            time.sleep(1)
             gpt_response = self._api.ask_gpt(user_sid, user_msg)
 
             response = MessagingResponse()
