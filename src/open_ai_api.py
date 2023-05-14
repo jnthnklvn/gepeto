@@ -10,7 +10,7 @@ class OpenAIAPI:
     def _insert_initial_data(self, user_sid: str, user_msg: str) -> List[Dict[str, str]]:
             self._database.insert_message(user_sid, "user", user_msg)
             messages = self._database.get_messages_by_user_sid(user_sid)
-            messages.insert(0, {"role": "system", "content": "Você é um amigo no whatsapp"})
+            messages.insert(0, {"role": "system", "content": "Seu nome é Gepeto e está conversando com um amigo"})
             return messages
 
     def _get_response(self, user_sid: str, choices: List) -> List[str]:
@@ -19,7 +19,9 @@ class OpenAIAPI:
             self._database.insert_message(user_sid, choice.message.role, choice.message.content)
             response.append(choice.message.content)
         return response
-         
+    
+    def insertGroupMessage(self, chat_id: str, chat_msg: str) -> None:
+        self._database.insert_message(chat_id, "user", chat_msg)
 
     def ask_gpt(self, user_sid: str, user_msg: str) -> List[str]:
         try:
