@@ -1,6 +1,6 @@
 import configparser
 from telebot import TeleBot
-from src.database import Database
+from src.graph_ql_client import GraphQLClient
 from src.open_ai_api import OpenAIAPI
 from src.telegram_bot import TelegramBot
 import logging
@@ -8,19 +8,14 @@ import logging
 cfg = configparser.ConfigParser()
 cfg.read(".env")
 
-logging.basicConfig(level=logging.INFO)
-
-logging.info(cfg.items('CHAT_GPT'))
-logging.info(cfg.items('MONGO'))
-logging.info(cfg.items('TELEGRAM'))
+logging.basicConfig(level=logging.WARNING)
 
 api_key = cfg.get("CHAT_GPT", "API_KEY")
-db_name = cfg.get("MONGO", "DATABASE_NAME")
-db_username = cfg.get("MONGO", "DATABASE_USERNAME")
-db_password = cfg.get("MONGO", "DATABASE_PASSWORD")
+mongo_api_url = cfg.get("MONGO", "API_URL")
+mongo_api_key = cfg.get("MONGO", "API_KEY")
 
-database = Database(db_name, db_username, db_password)
-open_ai_api = OpenAIAPI(database, api_key)
+gqlClient = GraphQLClient(mongo_api_url, mongo_api_key)
+open_ai_api = OpenAIAPI(gqlClient, api_key)
 
 telegramToken = cfg.get("TELEGRAM", "TOKEN")
 
