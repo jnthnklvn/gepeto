@@ -10,7 +10,7 @@ class OpenAIAPI:
     def _insert_initial_data(self, user_sid: str, user_msg: str) -> List[Dict[str, str]]:
             self._database.insert_message(user_sid, "user", user_msg)
             messages = self._database.get_messages_by_user_sid(user_sid)
-            messages.insert(0, {"role": "system", "content": "Seu nome é Gepeto e está conversando com um amigo"})
+            messages.insert(0, {"role": "system", "content": "Considere que seu nome é Gepeto e que esta conversa é com um amigo."})
             return messages
 
     def _get_response(self, user_sid: str, choices: List) -> List[str]:
