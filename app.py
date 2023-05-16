@@ -3,6 +3,7 @@ from telebot import TeleBot
 from src.graph_ql_client import GraphQLClient
 from src.open_ai_api import OpenAIAPI
 from src.telegram_bot import TelegramBot
+from src.azure_speech_recognizer import AzureSpeechRecognizer
 import logging
 
 cfg = configparser.ConfigParser()
@@ -14,18 +15,27 @@ api_key = cfg.get("CHAT_GPT", "API_KEY")
 mongo_api_url = cfg.get("MONGO", "API_URL")
 mongo_api_key = cfg.get("MONGO", "API_KEY")
 
+speech_key = cfg.get("AZURE", "SPEECH_KEY")
+speech_region = cfg.get("AZURE", "SPEECH_REGION")
+
+speech_recognizer = AzureSpeechRecognizer(speech_key, speech_region)
 gqlClient = GraphQLClient(mongo_api_url, mongo_api_key)
-open_ai_api = OpenAIAPI(gqlClient, api_key)
+openai_api = OpenAIAPI(gqlClient, api_key)
 
-telegramToken = cfg.get("TELEGRAM", "TOKEN")
+telegram_token = cfg.get("TELEGRAM", "TOKEN")
 
-teleBot = TeleBot(telegramToken, parse_mode=None)
-telegramBot = TelegramBot(teleBot, open_ai_api)
+tele_bot = TeleBot(telegram_token, parse_mode=None)
+telegram_bot = TelegramBot(tele_bot, speech_recognizer, openai_api)
 
 
-@teleBot.message_handler(func=lambda _: True)
+@tele_bot.message_handler(func=lambda _: True)
 def handle_message(message):
-    telegramBot.handle_request(message)
+    telegram_bot.handle_request(message)
 
 
-teleBot.infinity_polling()
+@tele_bot.message_handler(content_types=['voice'])
+def handle_voice_message(message) -> None:
+    telegram_bot.handle_voice_message(message)
+
+
+tele_bot.infinity_polling()

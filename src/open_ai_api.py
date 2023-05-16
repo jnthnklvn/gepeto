@@ -20,19 +20,19 @@ class OpenAIAPI:
         self._gql_client = gql_client
         openai.api_key = api_key
 
-    def _insert_initial_data(self, user_sid: str, user_msg: str) -> List[Dict[str, str]]:
+    def _insert_initial_data(self, user_sid: str, message: str, role="user") -> List[Dict[str, str]]:
         """
         Insert initial data into the GraphQL API.
 
         Args:
             user_sid: The user session ID.
-            user_msg: The user message.
+            message: The message to insert.
 
         Returns:
             The list of messages after inserting initial data.
         """
         try:
-            self._gql_client.insert_message(user_sid, "user", user_msg)
+            self._gql_client.insert_message(user_sid, role, message)
             messages = self._gql_client.get_messages(user_sid)
             messages.insert(
                 0,
@@ -62,15 +62,15 @@ class OpenAIAPI:
         except Exception as e:
             logging.error(f"Error trying to insert choices from gpt: {e}")
 
-    def insert_group_message(self, chat_id: str, chat_msg: str) -> None:
-        """
-        Insert a group message into the GraphQL API.
-
-        Args:
-            chat_id: The chat ID.
-            chat_msg: The group chat message.
-        """
-        self._gql_client.insert_message(chat_id, "user", chat_msg)
+    def _get_gpt_answer(self, user_sid: str, messages: List[str]) -> str:
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=messages
+            )
+            return self._get_response(user_sid, completion.choices)
+        except Exception:
+            return "Não consegui processar sua pergunta"
 
     def ask_gpt(self, user_sid: str, user_msg: str) -> List[str]:
         """
@@ -83,12 +83,21 @@ class OpenAIAPI:
         Returns:
             The list of responses from the GPT model.
         """
+
         messages = self._insert_initial_data(user_sid, user_msg)
-        try:
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages
-            )
-            return self._get_response(user_sid, completion.choices)
-        except Exception as exc:
-            raise ConnectionError(f"Error communicating with OpenAI: {exc}")
+        return self._get_gpt_answer(user_sid, messages)
+
+    def send_system_message(self, user_sid: str, system_msg: str):
+        """
+        Send a system message to the user.
+
+        Args:
+            user_sid: The user session ID.
+            system_msg: The system message.
+
+        Returns:
+            The list of responses from the GPT model.
+        """
+
+        messages = self._insert_initial_data(user_sid, system_msg, "system")
+        return self._get_gpt_answer(user_sid, messages)

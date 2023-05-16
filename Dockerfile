@@ -1,17 +1,29 @@
-# Python image to use.
-FROM python:3.10-alpine
+# using ubuntu LTS version
+FROM --platform=linux/amd64 python:3.11-slim-bullseye AS python-image
+
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+            build-essential \
+            libssl-dev \
+            ca-certificates \
+            libasound2 \
+            wget \
+            ffmpeg \
+    ; \
+	rm -rf /var/lib/apt/lists/*
 
 # Set the working directory to /app
 WORKDIR /app
 
-# copy the requirements file used for dependencies
-COPY requirements.txt .
-
 # Install any needed packages specified in requirements.txt
+COPY requirements.txt .
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 # Copy the rest of the working directory contents into the container at /app
 COPY . .
 
-# Run app.py when the container launches
+# make sure all messages always reach console
+ENV PYTHONUNBUFFERED=1
+
 ENTRYPOINT ["python", "app.py"]
