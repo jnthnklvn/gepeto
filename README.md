@@ -32,6 +32,11 @@ Before setting up the project, make sure you have completed the following steps:
 
     * Sign up for an account at [OpenAI](https://openai.com/) and obtain your API Key from the account dashboard.
 
+5. Create an Azure Account and Activate the Speech API:
+
+    * Create an account on Azure at Azure Portal.
+    * Activate the Speech API service and obtain the API Key and Region information.
+
 
 ## Setup
 
@@ -55,10 +60,13 @@ TOKEN = YOUR_TELEGRAM_BOT_TOKEN
 
 [MONGO]
 API_KEY = YOUR_MONGO_API_KEY
-API_URL = MONGO_GRAPHQL_API_URL
+API_URL = YOUR_MONGO_GRAPHQL_API_URL
+
+[AZURE]
+SPEECH_KEY = YOUR_AZURE_SPEECH_API_KEY
+SPEECH_REGION = YOUR_AZURE_SPEECH_API_REGION
 ```
 
-Replace `YOUR_CHAT_GPT_API_KEY` with your actual OpenAI GPT API key, `YOUR_TELEGRAM_BOT_TOKEN` with your Telegram bot token, `YOUR_MONGO_API_KEY` with your MongoDB API key, and `MONGO_GRAPHQL_API_URL` with the URL of your MongoDB GraphQL API.
 
 3. Build and run the Docker container:
 
@@ -78,6 +86,8 @@ The project requires the following Python packages. They are listed in the `requ
 openai==0.27.6
 pyTelegramBotAPI==4.11.0
 gql==3.4.1
+azure-cognitiveservices-speech==1.28.0
+pydub==0.25.1
 ```
 
 These dependencies will be installed automatically when building the Docker container.

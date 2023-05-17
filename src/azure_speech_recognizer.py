@@ -12,7 +12,6 @@ class AzureSpeechRecognizer:
             speech_region: The Azure region for the Speech Service.
         """
 
-        # Set up the speech configuration
         self._speech_config = speechsdk.SpeechConfig(
             subscription=speech_key, region=speech_region)
         self._speech_config.speech_recognition_language = "pt-BR"
