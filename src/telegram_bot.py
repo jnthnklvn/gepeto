@@ -35,9 +35,9 @@ class TelegramBot:
         AudioSegment.from_file(filename).export(filename, format='wav')
         with wave.open(filename) as audio:
             duration_seconds = audio.getnframes() / audio.getframerate()
-            if (duration_seconds > 2):
+            if (duration_seconds > 30):
                 self._bot.reply_to(
-                    message, "Desculpe, não ouço áudio com mais de 15 segundos, tempo é dinheiro!")
+                    message, "Desculpe, não ouço áudio com mais de 30 segundos, tempo é dinheiro!")
                 return
         text = self._speech_recognizer.convert_speech_to_text(
             os.path.abspath(filename))
@@ -55,13 +55,10 @@ class TelegramBot:
         Args:
             message: The incoming message from the user.
         """
-        if "private" == message.chat.type or message.text.lower().find("gepeto") != -1:
+        if "private" == message.chat.type:
             gpt_response = self._openai_api.ask_gpt(
                 str(message.chat.id), message.text)
             self._bot.reply_to(message, ''.join(gpt_response))
-        else:
-            self._openai_api.insert_group_message(
-                str(message.chat.id), message.text)
 
     def _download_file(self, file_id):
         file_info = self._bot.get_file(file_id)
