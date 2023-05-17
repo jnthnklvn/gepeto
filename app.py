@@ -25,17 +25,22 @@ openai_api = OpenAIAPI(gqlClient, api_key)
 telegram_token = cfg.get("TELEGRAM", "TOKEN")
 
 tele_bot = TeleBot(telegram_token, parse_mode=None)
-telegram_bot = TelegramBot(tele_bot, speech_recognizer, openai_api)
+telegram_bot = TelegramBot(tele_bot, openai_api)
+
+
+@tele_bot.message_handler(commands=['clear'])
+def clear_command(message):
+    telegram_bot.delete_user_messages(message, gqlClient)
 
 
 @tele_bot.message_handler(func=lambda _: True)
 def handle_message(message):
-    telegram_bot.handle_request(message)
+    telegram_bot.handle_text_message(message)
 
 
 @tele_bot.message_handler(content_types=['voice'])
 def handle_voice_message(message) -> None:
-    telegram_bot.handle_voice_message(message)
+    telegram_bot.handle_voice_message(message, speech_recognizer)
 
 
 tele_bot.infinity_polling()

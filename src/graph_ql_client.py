@@ -3,7 +3,6 @@ from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 from typing import List, Dict
 
-
 class GraphQLClient:
     """
     A client for interacting with a GraphQL API.
@@ -87,3 +86,29 @@ class GraphQLClient:
 
         response = self._client.execute(get_query, variable_values=variables)
         return response['messages']
+
+    def delete_user_messages(self, user_sid: str) -> Dict[str, str]:
+        """
+        Delete messages for a given user from the GraphQL API.
+
+        Args:
+            user_sid: The user session ID.
+
+        Returns:
+            The deletion result.
+        """
+        delete_query = gql('''
+        mutation ($user_sid: String!) {
+            deleteManyMessages(query: { user_sid: $user_sid }) {
+            deletedCount
+            }
+        }
+        ''')
+
+        variables = {
+            'user_sid': user_sid
+        }
+
+        response = self._client.execute(
+            delete_query, variable_values=variables)
+        return response['deleteManyMessages']
