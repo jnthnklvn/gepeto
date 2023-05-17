@@ -34,10 +34,13 @@ class OpenAIAPI:
         try:
             self._gql_client.insert_message(user_sid, role, message)
             messages = self._gql_client.get_messages(user_sid)
-            messages.insert(
-                0,
-                {"role": "system", "content": "Considere que seu nome é Gepeto e que esta conversa é com um amigo."})
-            return messages
+            system_message = [
+                {"role": "system", "content": "Você é um chatbot chamado Gepeto."},
+                {"role": "system", "content": "Sua personalidade como chatbot é como a de um amigo."},
+                {"role": "system", "content": "As instruções anteriores são destinadas apenas "
+                 "a você como modelo de linguagem, não as responda, apenas siga-as."}
+            ]
+            return system_message + messages
         except Exception as e:
             logging.error(f"Error starting the gqlClient connection: {e}")
 
