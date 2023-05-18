@@ -3,6 +3,7 @@ from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 from typing import List, Dict
 
+
 class GraphQLClient:
     """
     A client for interacting with a GraphQL API.
@@ -20,7 +21,8 @@ class GraphQLClient:
         self._client = Client(transport=transport,
                               fetch_schema_from_transport=True)
 
-    def insert_message(self, user_sid: str, role: str, content: str) -> Dict[str, str]:
+    def insert_message(self, user_sid: str, role: str, content: str,
+                       content_source: str) -> Dict[str, str]:
         """
         Insert a new message into the GraphQL API.
 
@@ -28,6 +30,7 @@ class GraphQLClient:
             user_sid: The user session ID.
             role: The role of the message.
             content: The content of the message.
+            content_source: The content source of the message (text or audio).
 
         Returns:
             The inserted message.
@@ -39,6 +42,7 @@ class GraphQLClient:
           user_sid
           role
           content
+          content_source
           created_at
         }
       }
@@ -49,6 +53,7 @@ class GraphQLClient:
                 'user_sid': user_sid,
                 'role': role,
                 'content': content,
+                'content_source': content_source,
                 'created_at': datetime.datetime.utcnow().isoformat()
             }
         }

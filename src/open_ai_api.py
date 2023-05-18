@@ -33,19 +33,23 @@ class OpenAIAPI:
             token_count -= len(message["content"].split(" "))
         return messages
 
-    def _insert_initial_data(self, user_sid: str, message: str, role="user") -> List[Dict[str, str]]:
+    def _insert_initial_data(self, user_sid: str, message: str, content_source: str,
+                             role: str = "user") -> List[Dict[str, str]]:
         """
         Insert initial data into the GraphQL API.
 
         Args:
             user_sid: The user session ID.
             message: The message to insert.
+            role: The role of the message.
+            content_source: The content source of the message (text or audio).
 
         Returns:
             The list of messages after inserting initial data.
         """
         try:
-            self._gql_client.insert_message(user_sid, role, message)
+            self._gql_client.insert_message(
+                user_sid, role, message, content_source)
             messages = self._gql_client.get_messages(user_sid)
             messages = self._fit_messages_to_token_limit(messages)
             system_message = [
@@ -74,7 +78,7 @@ class OpenAIAPI:
             response: List[str] = []
             for choice in choices:
                 self._gql_client.insert_message(
-                    user_sid, choice.message.role, choice.message.content)
+                    user_sid, choice.message.role, choice.message.content, "text")
                 response.append(choice.message.content)
             return response
         except Exception as e:
@@ -90,32 +94,19 @@ class OpenAIAPI:
         except Exception:
             return "Não consegui processar sua pergunta"
 
-    def ask_gpt(self, user_sid: str, user_msg: str) -> List[str]:
+    def ask_gpt(self, user_sid: str, user_msg: str, content_source: str = "text") -> List[str]:
         """
         Ask the OpenAI GPT-3 model for a response.
 
         Args:
             user_sid: The user session ID.
             user_msg: The user message.
+            content_source: The content source of the message (text or audio).
 
         Returns:
             The list of responses from the GPT model.
         """
 
-        messages = self._insert_initial_data(user_sid, user_msg)
-        return self._get_gpt_answer(user_sid, messages)
-
-    def send_system_message(self, user_sid: str, system_msg: str):
-        """
-        Send a system message to the user.
-
-        Args:
-            user_sid: The user session ID.
-            system_msg: The system message.
-
-        Returns:
-            The list of responses from the GPT model.
-        """
-
-        messages = self._insert_initial_data(user_sid, system_msg, "system")
+        messages = self._insert_initial_data(
+            user_sid, user_msg, content_source=content_source)
         return self._get_gpt_answer(user_sid, messages)

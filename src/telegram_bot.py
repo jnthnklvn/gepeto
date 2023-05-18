@@ -45,7 +45,7 @@ class TelegramBot:
         if (text == "" or text == None):
             self._bot.reply_to(message, "Não entendi o que você falou")
         else:
-            gpt_response = self._openai_api.ask_gpt(str(message.chat.id), text)
+            gpt_response = self._openai_api.ask_gpt(str(message.chat.id), text, "audio")
             self._bot.reply_to(message, gpt_response)
 
     def _download_file(self, file_id):
