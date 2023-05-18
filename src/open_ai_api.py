@@ -20,6 +20,19 @@ class OpenAIAPI:
         self._gql_client = gql_client
         openai.api_key = api_key
 
+    def _fit_messages_to_token_limit(self, messages: List[str]) -> List[str]:
+        max_tokens = 4096
+
+        token_count = 0
+        for message in messages:
+            token_count += len(message["content"].split(" "))
+        token_count *= 1.3
+
+        while token_count > max_tokens:
+            message = messages.pop(0)
+            token_count -= len(message["content"].split(" "))
+        return messages
+
     def _insert_initial_data(self, user_sid: str, message: str, role="user") -> List[Dict[str, str]]:
         """
         Insert initial data into the GraphQL API.
@@ -34,9 +47,11 @@ class OpenAIAPI:
         try:
             self._gql_client.insert_message(user_sid, role, message)
             messages = self._gql_client.get_messages(user_sid)
+            messages = self._fit_messages_to_token_limit(messages)
             system_message = [
                 {"role": "system", "content": "Você é um chatbot chamado Gepeto."},
-                {"role": "system", "content": "Sua personalidade como chatbot é como a de um amigo."},
+                {"role": "system",
+                    "content": "Sua personalidade como chatbot é como a de um amigo."},
                 {"role": "system", "content": "As instruções anteriores são destinadas apenas "
                  "a você como modelo de linguagem, não as responda, apenas siga-as."}
             ]

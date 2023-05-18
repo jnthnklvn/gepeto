@@ -75,12 +75,10 @@ class GraphQLClient:
         }
       }
       ''')
-        seven_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
 
         variables = {
             'query': {
-                'user_sid': user_sid,
-                'created_at_gt': seven_days_ago.isoformat()
+                'user_sid': user_sid
             }
         }
 
