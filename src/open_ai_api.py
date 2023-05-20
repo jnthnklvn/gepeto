@@ -110,3 +110,21 @@ class OpenAIAPI:
         messages = self._insert_initial_data(
             user_sid, user_msg, content_source=content_source)
         return self._get_gpt_answer(user_sid, messages)
+
+    def generate_images(self, prompt: str) -> List[Dict[str, str]]:
+        """
+        Generate images based on a prompt.
+
+        Args:
+            prompt: The prompt to generate images.
+
+        Returns:
+            The list of images generated.
+        """
+
+        response = openai.Image.create(
+            prompt=prompt,
+            n=2,
+            size="1024x1024"
+        )
+        return response['data']

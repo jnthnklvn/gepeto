@@ -1,4 +1,4 @@
-from telebot import TeleBot
+from telebot import TeleBot, types
 from src.open_ai_api import OpenAIAPI
 from src.graph_ql_client import GraphQLClient
 from src.azure_speech_recognizer import AzureSpeechRecognizer
@@ -24,6 +24,25 @@ class TelegramBot:
         self._bot = bot
         self._openai_api = openai_api
 
+    def generate_images(self, message) -> None:
+        """
+        Generates images and send it as a media group to the user.
+
+        Args:
+            message: The incoming message from the user.
+        """
+
+        reply = message.text.replace("/imagem", "")
+        if (reply.strip() == ""):
+            self._bot.reply_to(
+                message, "Você precisa digitar uma frase para gerar imagens.")
+            return
+
+        images = self._openai_api.generate_images(str(message.text))
+        photos = list(
+            map(lambda img: types.InputMediaPhoto(img['url']), images))
+        self._bot.send_media_group(message.chat.id, photos)
+
     def handle_voice_message(self, message, speech_recognizer: AzureSpeechRecognizer) -> None:
         """
         Handle user message and generate responses.
@@ -45,7 +64,8 @@ class TelegramBot:
         if (text == "" or text == None):
             self._bot.reply_to(message, "Não entendi o que você falou")
         else:
-            gpt_response = self._openai_api.ask_gpt(str(message.chat.id), text, "audio")
+            gpt_response = self._openai_api.ask_gpt(
+                str(message.chat.id), text, "audio")
             self._bot.reply_to(message, gpt_response)
 
     def _download_file(self, file_id):

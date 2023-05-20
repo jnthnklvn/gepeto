@@ -28,6 +28,11 @@ tele_bot = TeleBot(telegram_token, parse_mode=None)
 telegram_bot = TelegramBot(tele_bot, openai_api)
 
 
+@tele_bot.message_handler(commands=['imagem'])
+def generate_images(message):
+    telegram_bot.generate_images(message)
+
+
 @tele_bot.message_handler(commands=['clear'])
 def clear_command(message):
     telegram_bot.delete_user_messages(message, gqlClient)
