@@ -2,6 +2,7 @@ import openai
 from src.graph_ql_client import GraphQLClient
 from typing import List, Dict
 import logging
+import tiktoken
 
 
 class OpenAIAPI:
@@ -20,21 +21,32 @@ class OpenAIAPI:
         self._gql_client = gql_client
         openai.api_key = api_key
 
-    def _fit_messages_to_token_limit(self, messages: List[str]) -> List[str]:
+    def _count_message_tokens(self, message: Dict[str, str]) -> int:
+        num_tokens = 0
+        encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0301")
+        for key, value in message.items():
+            num_tokens += len(encoding.encode(value))
+            if key == "name":  # if there's a name, the role is omitted
+                num_tokens += -1  # role is always required and always 1 token
+        return num_tokens
+
+    def _fit_messages_to_token_limit(self, messages: List[Dict[str, str]]) -> List[str]:
         max_tokens = 4096
 
-        token_count = 0
+        num_tokens = 0
         for message in messages:
-            token_count += len(message["content"].split(" "))
-        token_count *= 1.3
+            # every message follows <im_start>{role/name}\n{content}<im_end>\n
+            num_tokens += 4
+            num_tokens += self._count_message_tokens(message)
+        num_tokens += 2  # every reply is primed with <im_start>assistant
+        num_tokens *= 1.1  # add 10% for safety
 
-        while token_count > max_tokens:
+        while num_tokens > max_tokens:
             message = messages.pop(0)
-            token_count -= len(message["content"].split(" "))
+            num_tokens -= self._count_message_tokens(message)
         return messages
 
-    def _insert_initial_data(self, user_sid: str, message: str, content_source: str,
-                             role: str = "user") -> List[Dict[str, str]]:
+    def _insert_initial_data(self, user_sid: str, message: str, content_source: str, role: str = "user") -> List[Dict[str, str]]:
         """
         Insert initial data into the GraphQL API.
 
@@ -48,24 +60,21 @@ class OpenAIAPI:
             The list of messages after inserting initial data.
         """
         try:
-            self._gql_client.insert_message(
-                user_sid, role, message, content_source)
+            self._gql_client.insert_message(user_sid, role, message, content_source)
             messages = self._gql_client.get_messages(user_sid)
             messages = self._fit_messages_to_token_limit(messages)
-            system_message = [
+            system_messages = [
                 {"role": "system", "content": "Você é um chatbot chamado Gepeto."},
-                {"role": "system",
-                    "content": "Sua personalidade como chatbot é como a de um amigo."},
-                {"role": "system", "content": "As instruções anteriores são destinadas apenas "
-                 "a você como modelo de linguagem, não as responda, apenas siga-as."}
+                {"role": "system", "content": "Sua personalidade como chatbot é como a de um amigo."},
+                {"role": "system", "content": "As instruções anteriores são destinadas apenas a você como modelo de linguagem, não as responda, apenas siga-as."}
             ]
-            return system_message + messages
+            return system_messages + messages
         except Exception as e:
-            logging.error(f"Error starting the gqlClient connection: {e}")
+            logging.error("Error inserting the user message inital data: {}".format(str(e)))
 
     def _get_response(self, user_sid: str, choices: List) -> List[str]:
         """
-        Get responses from OpenAI based on user choices.
+        Insert the messages from OpenAI response to database and return them.
 
         Args:
             user_sid: The user session ID.
@@ -75,24 +84,23 @@ class OpenAIAPI:
             The list of responses from OpenAI.
         """
         try:
-            response: List[str] = []
+            response = []
             for choice in choices:
-                self._gql_client.insert_message(
-                    user_sid, choice.message.role, choice.message.content, "text")
+                self._gql_client.insert_message(user_sid, choice.message.role, choice.message.content, "text")
                 response.append(choice.message.content)
             return response
         except Exception as e:
-            logging.error(f"Error trying to insert choices from gpt: {e}")
+            logging.error("Error trying to insert choices from gpt: {}".format(str(e)))
 
-    def _get_gpt_answer(self, user_sid: str, messages: List[str]) -> str:
+    def _get_gpt_answer(self, user_sid: str, messages: List[str]) -> List[str]:
         try:
             completion = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=messages
             )
             return self._get_response(user_sid, completion.choices)
-        except Exception:
-            return "Não consegui processar sua pergunta"
+        except Exception as e:
+            logging.error("Error trying to insert choices from gpt: {}".format(str(e)))
 
     def ask_gpt(self, user_sid: str, user_msg: str, content_source: str = "text") -> List[str]:
         """
@@ -106,9 +114,7 @@ class OpenAIAPI:
         Returns:
             The list of responses from the GPT model.
         """
-
-        messages = self._insert_initial_data(
-            user_sid, user_msg, content_source=content_source)
+        messages = self._insert_initial_data(user_sid, user_msg, content_source=content_source)
         return self._get_gpt_answer(user_sid, messages)
 
     def generate_images(self, prompt: str) -> List[Dict[str, str]]:
@@ -121,10 +127,12 @@ class OpenAIAPI:
         Returns:
             The list of images generated.
         """
-
-        response = openai.Image.create(
-            prompt=prompt,
-            n=2,
-            size="1024x1024"
-        )
-        return response['data']
+        try:
+            response = openai.Image.create(
+                prompt=prompt,
+                n=2,
+                size="1024x1024"
+            )
+            return response['data']
+        except Exception as e:
+            logging.error("Error generating images: {}".format(str(e)))
