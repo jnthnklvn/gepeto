@@ -1,5 +1,4 @@
-# using ubuntu LTS version
-FROM --platform=linux/amd64 python:3.11-slim-bullseye AS python-image
+FROM python:3.11-slim-bullseye AS python-image
 
 RUN set -eux; \
 	apt-get update; \

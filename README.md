@@ -16,6 +16,7 @@ Before setting up the project, make sure you have completed the following steps:
     "user_sid": "24723231213",
     "role": "user",
     "content": "Olá",
+    "content_source": "text",
     "created_at": "2023-05-14T20:21:44.360479"
 }
 ```
@@ -88,6 +89,7 @@ pyTelegramBotAPI==4.11.0
 gql==3.4.1
 azure-cognitiveservices-speech==1.28.0
 pydub==0.25.1
+tiktoken==0.4.0
 ```
 
 These dependencies will be installed automatically when building the Docker container.
