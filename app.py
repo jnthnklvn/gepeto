@@ -59,10 +59,24 @@ def help_command(message):
                    "\n\n/audio - Converte o texto de uma mensagem em um áudio e envia como mensagem de voz." \
                    "\n/codigofonte - Retorna uma breve explicação sobre o projeto e um link para o código-fonte." \
                    "\n/imagem - Gera imagens com base em uma frase e envia como uma sequência de fotos." \
-                   "\n/limpar - Deleta todas as mensagens enviadas pelo usuário." \
+                   "\n/limpar - Deleta todas as suas mensagens enviadas para o bot (inclusive as criadas por ele) do banco de dados." \
                    "\n\nFique à vontade para explorar e conversar comigo!"
 
     tele_bot.reply_to(message, help_message)
+
+
+@tele_bot.message_handler(commands=['start'])
+def start_command(message):
+    intro_message = "Olá! Eu sou o Gepeto, um chatbot desenvolvido com o modelo OpenAI GPT-3. " \
+                    "Estou aqui para conversar com você e responder às suas perguntas.\n\n" \
+                    "Além disso, posso ajudar nas seguintes tarefas:\n" \
+                    "- Gerar e enviar imagens com base nas frases fornecidas.\n" \
+                    "- Converter o texto de uma mensagem em áudio.\n" \
+                    "- Deletar todas as mensagens dessa conversa do nosso banco de dados.\n\n" \
+                    "Para conhecer todos os comandos disponíveis, por favor, utilize o comando /help.\n\n" \
+                    "Lembre-se de não enviar informações sensíveis, como senhas ou dados pessoais, para garantir sua segurança."
+
+    tele_bot.reply_to(message, intro_message)
 
 
 @tele_bot.message_handler(commands=['limpar'])
