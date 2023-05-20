@@ -15,6 +15,34 @@ class AzureSpeechRecognizer:
         self._speech_config = speechsdk.SpeechConfig(
             subscription=speech_key, region=speech_region)
         self._speech_config.speech_recognition_language = "pt-BR"
+        self._speech_config.speech_synthesis_voice_name = "pt-BR-AntonioNeural"
+
+    def convert_text_to_speech(self, text: str, filename: str) -> None:
+        """
+        Convert text to speech audio file using Azure Speech Service.
+
+        Args:
+            text: The text to be converted to speech.
+            filename: The audio filename.
+        """
+        audio_config = speechsdk.audio.AudioOutputConfig(filename=filename)
+        speech_synthesizer = speechsdk.SpeechSynthesizer(
+            speech_config=self._speech_config, audio_config=audio_config)
+
+        result: speechsdk.SpeechSynthesisResult = speech_synthesizer.speak_text_async(
+            text).get()
+
+        if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+            return result.audio_data
+        elif result.reason == speechsdk.ResultReason.Canceled:
+            cancellation_details = result.cancellation_details
+            logging.error("Speech synthesis canceled: {}".format(
+                cancellation_details.reason))
+            if cancellation_details.reason == speechsdk.CancellationReason.Error:
+                logging.error("Error details: {}".format(
+                    cancellation_details.error_details))
+        else:
+            logging.error("Unknown speech synthesis error.")
 
     def convert_speech_to_text(self, filename) -> str:
         """

@@ -28,6 +28,11 @@ tele_bot = TeleBot(telegram_token, parse_mode=None)
 telegram_bot = TelegramBot(tele_bot, openai_api)
 
 
+@tele_bot.message_handler(commands=['audio'])
+def audio_command(message):
+    telegram_bot.convert_text_to_speech(message, speech_recognizer)
+
+
 @tele_bot.message_handler(commands=['imagem'])
 def generate_images(message):
     telegram_bot.generate_images(message)
@@ -38,14 +43,14 @@ def clear_command(message):
     telegram_bot.delete_user_messages(message, gqlClient)
 
 
-@tele_bot.message_handler(func=lambda _: True)
-def handle_message(message):
-    telegram_bot.handle_text_message(message)
-
-
 @tele_bot.message_handler(content_types=['voice'])
 def handle_voice_message(message) -> None:
     telegram_bot.handle_voice_message(message, speech_recognizer)
+
+
+@tele_bot.message_handler(func=lambda _: True)
+def handle_message(message):
+    telegram_bot.handle_text_message(message)
 
 
 tele_bot.infinity_polling()

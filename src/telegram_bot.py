@@ -32,8 +32,8 @@ class TelegramBot:
             message: The incoming message from the user.
         """
 
-        reply = message.text.replace("/imagem", "")
-        if (reply.strip() == ""):
+        prompt = message.text.replace("/imagem", "")
+        if (prompt.strip() == ""):
             self._bot.reply_to(
                 message, "Você precisa digitar uma frase para gerar imagens.")
             return
@@ -43,12 +43,42 @@ class TelegramBot:
             map(lambda img: types.InputMediaPhoto(img['url']), images))
         self._bot.send_media_group(message.chat.id, photos)
 
+    def convert_text_to_speech(self, message, speech_recognizer: AzureSpeechRecognizer) -> None:
+        """
+        Convert text to speech and send it as a voice message to the user.
+
+        Args:
+            message: The incoming message from the user.
+            speech_recognizer: An instance of the AzureSpeechRecognizer.
+        """
+        reply = message.reply_to_message
+        if (reply == None or reply.text == None or reply.text.strip() == ""):
+            self._bot.reply_to(
+                message, "Você precisa responder à uma mensagem para gerar o áudio dela.")
+            return
+        if (len(reply.text) > 1500):
+            self._bot.reply_to(
+                message, "Essa mensagem ultrapassa o limite de 1500 caracteres!")
+            return
+
+        filename = f"{message.chat.id}.wav"
+        audio_data = speech_recognizer.convert_text_to_speech(
+            reply.text, filename)
+        if (audio_data == None):
+            self._bot.reply_to(
+                message, "Ocorreu um erro e não foi possível gerar o áudio.")
+            return
+        with open(filename, "rb") as file:
+            self._bot.send_voice(message.chat.id, file)
+        os.remove(filename)
+
     def handle_voice_message(self, message, speech_recognizer: AzureSpeechRecognizer) -> None:
         """
         Handle user message and generate responses.
 
         Args:
             message: The incoming message from the user.
+            speech_recognizer: An instance of the AzureSpeechRecognizer.
         """
         filename = self._download_file(message.voice.file_id)
         AudioSegment.from_file(filename).export(filename, format='wav')
