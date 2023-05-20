@@ -38,7 +38,34 @@ def generate_images(message):
     telegram_bot.generate_images(message)
 
 
-@tele_bot.message_handler(commands=['clear'])
+@tele_bot.message_handler(commands=['codigofonte'])
+def explain_source_code(message):
+    explanation = "O projeto Gepeto é um chatbot que utiliza o modelo OpenAI GPT-3 e integra com um bot do Telegram. " \
+                  "Ele pode manter conversas com os usuários e gerar respostas com base nas previsões do modelo " \
+                  "OpenAI.\n\nAlém disso, o Gepeto também oferece recursos adicionais, como reconhecimento de voz e " \
+                  "conversão de texto para discurso usando o SDK Speech da Azure, e geração de imagens com o modelo " \
+                  "DALL-E 2 da OpenAI.\n\nO código-fonte do projeto está disponível em um repositório de código aberto " \
+                  "no GitHub. Você pode acessar o repositório em: " \
+                  "https://github.com/jnthnklvn/gepeto.\n\nFique à vontade para explorar o código e contribuir com o " \
+                  "projeto se desejar!"
+
+    tele_bot.reply_to(message, explanation)
+
+
+@tele_bot.message_handler(commands=['help'])
+def help_command(message):
+    help_message = "Olá! Eu sou o Gepeto, um chatbot desenvolvido com o modelo OpenAI GPT-3. " \
+                   "Aqui estão os comandos que você pode usar:" \
+                   "\n\n/audio - Converte o texto de uma mensagem em um áudio e envia como mensagem de voz." \
+                   "\n/codigofonte - Retorna uma breve explicação sobre o projeto e um link para o código-fonte." \
+                   "\n/imagem - Gera imagens com base em uma frase e envia como uma sequência de fotos." \
+                   "\n/limpar - Deleta todas as mensagens enviadas pelo usuário." \
+                   "\n\nFique à vontade para explorar e conversar comigo!"
+
+    tele_bot.reply_to(message, help_message)
+
+
+@tele_bot.message_handler(commands=['limpar'])
 def clear_command(message):
     telegram_bot.delete_user_messages(message, gqlClient)
 
