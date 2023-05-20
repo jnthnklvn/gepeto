@@ -18,11 +18,9 @@ class GraphQLClient:
             api_key: The API key for authentication.
         """
         transport = AIOHTTPTransport(url=url, headers={'apiKey': api_key})
-        self._client = Client(transport=transport,
-                              fetch_schema_from_transport=True)
+        self._client = Client(transport=transport, fetch_schema_from_transport=True)
 
-    def insert_message(self, user_sid: str, role: str, content: str,
-                       content_source: str) -> Dict[str, str]:
+    def insert_message(self, user_sid: str, role: str, content: str, content_source: str) -> Dict[str, str]:
         """
         Insert a new message into the GraphQL API.
 
@@ -36,17 +34,17 @@ class GraphQLClient:
             The inserted message.
         """
         insert_query = gql('''
-      mutation ($data: MessageInsertInput!) {
-        insertOneMessage(data: $data) {
-          _id
-          user_sid
-          role
-          content
-          content_source
-          created_at
-        }
-      }
-      ''')
+            mutation ($data: MessageInsertInput!) {
+                insertOneMessage(data: $data) {
+                    _id
+                    user_sid
+                    role
+                    content
+                    content_source
+                    created_at
+                }
+            }
+        ''')
 
         variables = {
             'data': {
@@ -58,9 +56,12 @@ class GraphQLClient:
             }
         }
 
-        response = self._client.execute(
-            insert_query, variable_values=variables)
-        return response['insertOneMessage']
+        try:
+            response = self._client.execute(insert_query, variable_values=variables)
+            return response['insertOneMessage']
+        except Exception as e:
+            # Handle any GraphQL API or network-related errors
+            raise Exception("Failed to insert message: {}".format(str(e)))
 
     def get_messages(self, user_sid: str) -> List[Dict[str, str]]:
         """
@@ -73,13 +74,13 @@ class GraphQLClient:
             The list of messages.
         """
         get_query = gql('''
-      query ($query: MessageQueryInput!) {
-        messages(query: $query, sortBy: CREATED_AT_ASC) {
-          role
-          content
-        }
-      }
-      ''')
+            query ($query: MessageQueryInput!) {
+                messages(query: $query, sortBy: CREATED_AT_ASC) {
+                    role
+                    content
+                }
+            }
+        ''')
 
         variables = {
             'query': {
@@ -87,8 +88,12 @@ class GraphQLClient:
             }
         }
 
-        response = self._client.execute(get_query, variable_values=variables)
-        return response['messages']
+        try:
+            response = self._client.execute(get_query, variable_values=variables)
+            return response['messages']
+        except Exception as e:
+            # Handle any GraphQL API or network-related errors
+            raise Exception("Failed to retrieve messages: {}".format(str(e)))
 
     def delete_user_messages(self, user_sid: str) -> Dict[str, str]:
         """
@@ -101,17 +106,20 @@ class GraphQLClient:
             The deletion result.
         """
         delete_query = gql('''
-        mutation ($user_sid: String!) {
-            deleteManyMessages(query: { user_sid: $user_sid }) {
-            deletedCount
+            mutation ($user_sid: String!) {
+                deleteManyMessages(query: { user_sid: $user_sid }) {
+                    deletedCount
+                }
             }
-        }
         ''')
 
         variables = {
             'user_sid': user_sid
         }
 
-        response = self._client.execute(
-            delete_query, variable_values=variables)
-        return response['deleteManyMessages']
+        try:
+            response = self._client.execute(delete_query, variable_values=variables)
+            return response['deleteManyMessages']
+        except Exception as e:
+            # Handle any GraphQL API or network-related errors
+            raise Exception("Failed to delete user messages: {}".format(str(e)))
